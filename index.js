@@ -109,9 +109,9 @@ function detectHost() {
 async function saveSessionFromConfig() {
     try {
         if (!config.SESSION_ID) return false;
-        if (!config.SESSION_ID.includes('dave~')) return false;
+        if (!config.SESSION_ID.includes('DAVE-AI:~')) return false;
 
-        const base64Data = config.SESSION_ID.split("dave~")[1];
+        const base64Data = config.SESSION_ID.split("DAVE-AI:~")[1];
         if (!base64Data) return false;
 
         const sessionData = Buffer.from(base64Data, 'base64');
@@ -661,7 +661,7 @@ async function tylor() {
       return;
     }
 
-    if (config.SESSION_ID && config.SESSION_ID.includes("dave~")) {
+    if (config.SESSION_ID && config.SESSION_ID.includes("DAVE-AI:~")) {
       const ok = await saveSessionFromConfig();
       if (ok) {
         console.log(chalk.greenBright("✅ Session ID loaded and saved successfully. Starting bot..."));
