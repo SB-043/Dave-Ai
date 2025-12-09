@@ -103,7 +103,7 @@ const credsPath = path.join(sessionDir, 'creds.json');
 async function saveSessionFromConfig() {
   try {
     if (!config.SESSION_ID) return false;
-    if (!config.SESSION_ID.includes('DAVE-AI~')) return false;
+    if (!config.SESSION_ID.includes('DAVE-AI:~')) return false;
 
     const base64Data = config.SESSION_ID.split("DAVE-AI:~")[1];
     if (!base64Data) return false;
