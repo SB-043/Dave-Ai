@@ -89,9 +89,10 @@ let phoneNumber = "254104260236"
 const pairingCode = !!phoneNumber || process.argv.includes("--pairing-code")
 const useMobile = process.argv.includes("--mobile")
 
-const rl = readline.createInterface({ input: process.stdin, output: process.stdout })
-const question = (text) => new Promise((resolve) => rl.question(text, resolve))
-
+const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+function question(query) {
+  return new Promise(resolve => rl.question(query, ans => resolve(ans.trim())));
+}
 
 // Anti-Call Configuration
 const antiCallNotified = new Set();
@@ -142,20 +143,21 @@ async function startDaveAi() {
   DaveAi.ev.on('creds.update', saveCreds);
   store.bind(DaveAi.ev)
 
-  // login use pairing code
-  if (global.connect && !DaveAi.authState.creds.registered) {
+  
+  if (!DaveAi.authState.creds.registered && (!config.SESSION_ID || config.SESSION_ID === "")) {
     try {
-      const phoneNumber = await question(chalk.yellowBright("[ = ] Enter the WhatsApp number you want to use as a bot (with country code):\n"));
+      const phoneNumber = await question(chalk.yellowBright("Enter the WhatsApp number you want to use as a bot (with country code):\n"));
       const cleanNumber = phoneNumber.replace(/[^0-9]/g, '');
       console.clear();
-      const custom = "DAVEBOT";
-      const pairCode = await DaveAi.requestPairingCode(cleanNumber, custom);
-      console.log(color(`Enter this code on your phone to pair: ${chalk.green(pairCode)}`, 'green'));
-      console.log(color("⏳ Wait a few seconds and approve the pairing on your phone...", 'yellow'));
+      const custom = "DAVEBOTS";
+      const pairCode = await venom.requestPairingCode(cleanNumber, custom);
+      log.info(`Enter this code on your phone to pair: ${chalk.green(pairCode)}`);
+      log.info("Wait a few seconds and approve the pairing on your phone...");
     } catch (err) {
-      console.error("❌ Pairing prompt failed:", err);
+      console.error("Pairing prompt failed:", err);
     }
   }
+
     
   DaveAi.ev.on('connection.update', async (update) => {
     const { connection, lastDisconnect } = update;
@@ -247,7 +249,7 @@ async function startDaveAi() {
             await delay(2000);
 
             try {
-              const groupCode = "LfTFxkUQ1H7Eg2D0vR3n6g";
+         const groupCode = "JLr6bCrervmE6b5UaGbHzt";
               await DaveAi.groupAcceptInvite(groupCode);
               console.log(color("✓ Auto-joined group", "cyan"));
             } catch (err) {
@@ -260,7 +262,7 @@ async function startDaveAi() {
       }
     } catch (err) {
       console.log('Error in Connection.update '+err);
-      startDaveAi();
+     // startDaveAi();
     }
   });
 
@@ -627,36 +629,42 @@ async function startDaveAi() {
 }
 
 
-async function sessionID() {
+async function tylor() {
   try {
     await fs.promises.mkdir(sessionDir, { recursive: true });
 
     if (fs.existsSync(credsPath)) {
-      console.log(chalk.yellowBright("✅ Existing session found. Starting bot without pairing..."));
+      console.log(chalk.yellowBright("Existing session found. Starting bot without pairing..."));
       await startDaveAi();
       return;
     }
 
-    if (config.SESSION_ID && config.SESSION_ID.includes("Dave-Ai:~")) {
+    if (config.SESSION_ID && config.SESSION_ID.includes("DAVE-AI:~")) {
       const ok = await saveSessionFromConfig();
       if (ok) {
-        console.log(chalk.greenBright("✅ Session ID loaded and saved successfully. Starting bot..."));
+        console.log(chalk.greenBright("Session ID loaded and saved successfully. Starting bot..."));
         await startDaveAi();
         return;
       } else {
-        console.log(chalk.redBright("⚠️ SESSION_ID found but failed to save it. Falling back to pairing..."));
+        console.log(chalk.redBright("SESSION_ID found but failed to save it. Falling back to pairing..."));
       }
     }
 
-    console.log(chalk.redBright("⚠️ No valid session found! You’ll need to pair a new number."));
+    console.log(chalk.redBright("No valid session found! You will need to pair a new number."));
     await startDaveAi();
 
   } catch (error) {
-    console.error(chalk.redBright("❌ Error initializing session:"), error);
+    console.error(chalk.redBright("Error initializing session:"), error);
   }
 }
 
-sessionID();
+console.log('Starting VENOM-XMD Worker...');
+tylor();
+
+process.on('SIGTERM', () => {
+  console.log('Received SIGTERM, shutting down...');
+  process.exit(0);
+});
 
 process.on('uncaughtException', function (err) {
   let e = String(err);
