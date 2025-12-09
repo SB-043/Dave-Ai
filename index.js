@@ -91,8 +91,6 @@ const useMobile = process.argv.includes("--mobile")
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout })
 const question = (text) => new Promise((resolve) => rl.question(text, resolve))
 
-const sessionDir = path.join(__dirname, 'session');
-const credsPath = path.join(sessionDir, 'creds.json');
 
 // Anti-Call Configuration
 const antiCallNotified = new Set();
