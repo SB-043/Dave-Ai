@@ -99,7 +99,7 @@ async function saveSessionFromConfig() {
   try {
     const sessionId = global.SESSION_ID || process.env.SESSION_ID;
     if (!sessionId) return false;
-    if (!sessionId.includes('DaveAi~')) return false;
+    if (!sessionId.includes('DaveAi:~')) return false;
 
     const base64Data = sessionId.split("DaveAi:~")[1];
     if (!base64Data) return false;
