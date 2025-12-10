@@ -193,36 +193,20 @@ async function startDaveAi() {
       }
       
       if (update.connection == "open" || update.receivedPendingNotifications == "true") {
-        console.log(color(` `,'magenta'));
-        console.log(color(`Connected to => ` + JSON.stringify(DaveAi.user, null, 2), 'green'));
-        
-        await delay(1999);
-        
-        // Get current settings from global.settings
-        const currentMode = global.settings?.public !== false ? 'public' : 'private';
-        const hostName = detectHost();
-        
-        setTimeout(async () => {
-          try {
-            // Initialize AntiDelete feature if enabled
-            if (global.settings.antidelete?.enabled) {
-                const botJid = DaveAi.user.id.split(':')[0] + '@s.whatsapp.net';
-                try {
-                    const initAntiDelete = require('./library/lib/antiDelete');
-                    initAntiDelete(DaveAi, {
-                        botNumber: botJid,
-                        dbPath: './library/database/antidelete.json',
-                        enabled: true
-                    });
-                    console.log(color(`✓ AntiDelete active and sending deleted messages to ${botJid}`, 'green'));
-                } catch (err) {
-                    console.log(color(`✗ AntiDelete module not found or error: ${err.message}`, 'yellow'));
-                }
-            }
+    console.log(color(` `,'magenta'));
+    console.log(color(`Connected to => ` + JSON.stringify(DaveAi.user, null, 2), 'green'));
 
-            // Send welcome message (no image)
-            DaveAi.sendMessage(DaveAi.user.id, {
-              text: ` 
+    await delay(1999);
+
+    const currentMode = global.settings?.public !== false ? 'public' : 'private';
+    const hostName = detectHost();
+
+    setTimeout(async () => {
+      try {
+
+        // Welcome message
+        DaveAi.sendMessage(DaveAi.user.id, {
+          text: ` 
 ┏━━━━━✧ DAVE-MD CONNECTED ✧━━━━━━━
 ┃✧ Prefix: [${global.settings.xprefix}]
 ┃✧ Mode: ${currentMode}
@@ -230,41 +214,60 @@ async function startDaveAi() {
 ┃✧ Status: online
 ┃✧ Time: ${new Date().toLocaleString()}
 ┗━━━━━━━━━━━━━━━━━━━`
-            });
+        });
 
-            console.log(color('>DAVE-MD Bot is Connected< [ ! ]','red'));
-            
-            // Run auto-join features after connection
-            await delay(1500);
+        console.log(color('>DAVE-MD Bot is Connected< [ ! ]','red'));
 
-            // Newsletter follow and group join
+        // ================================
+        //       AntiDelete AFTER welcome
+        // ================================
+        if (global.settings.antidelete?.enabled) {
+            const botJid = DaveAi.user.id.split(':')[0] + '@s.whatsapp.net';
             try {
-              const channelId = "120363400480173280@newsletter";
-              await DaveAi.newsletterFollow(channelId);
-              console.log(color("✓ Auto-followed newsletter channel", "cyan"));
+                const initAntiDelete = require('./library/lib/antiDelete');
+                initAntiDelete(DaveAi, {
+                    botNumber: botJid,
+                    dbPath: './library/database/antidelete.json',
+                    enabled: true
+                });
+                console.log(color(`✓ AntiDelete active and sending deleted messages to ${botJid}`, 'green'));
             } catch (err) {
-              console.log(color(`✗ Newsletter follow failed: ${err.message}`, "yellow"));
+                console.log(color(`✗ AntiDelete module not found or error: ${err.message}`, 'yellow'));
             }
+        }
 
-            await delay(2000);
+        await delay(1500);
 
-            try {
-         const groupCode = "JLr6bCrervmE6b5UaGbHzt";
-              await DaveAi.groupAcceptInvite(groupCode);
-              console.log(color("✓ Auto-joined group", "cyan"));
-            } catch (err) {
-              console.log(color(`✗ Group join failed: ${err.message}`, "yellow"));
-            }
-          } catch (err) {
-            console.error('Error in welcome/auto-join:', err);
-          }
-        }, 1000); // 1 second delay before welcome message
+        // Newsletter follow
+        try {
+          const channelId = "120363400480173280@newsletter";
+          await DaveAi.newsletterFollow(channelId);
+          console.log(color("✓ Auto-followed newsletter channel", "cyan"));
+        } catch (err) {
+          console.log(color(`✗ Newsletter follow failed: ${err.message}`, "yellow"));
+        }
+
+        await delay(2000);
+
+        // Auto join group
+        try {
+          const groupCode = "JLr6bCrervmE6b5UaGbHzt";
+          await DaveAi.groupAcceptInvite(groupCode);
+          console.log(color("✓ Auto-joined group", "cyan"));
+        } catch (err) {
+          console.log(color(`✗ Group join failed: ${err.message}`, "yellow"));
+        }
+
+      } catch (err) {
+        console.error('Error in welcome/auto-join:', err);
       }
-    } catch (err) {
-      console.log('Error in Connection.update '+err);
-     // startDaveAi();
-    }
-  });
+
+    }, 1000);  // Delay before welcome message
+} catch (err) {
+    console.log('Error in Connection.update ' + err);
+}
+
+});  
 
   DaveAi.ev.on("messages.upsert",  () => { });
 
